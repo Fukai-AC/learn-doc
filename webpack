@@ -1,0 +1,3 @@
+一.关于CLI.
+CLI是在执行webpack命令时后面紧随的参数，用于做不同的配置，例如:执行webpack --debug 将会覆盖webpack的config中的debug,设置为true
+二.关于nodejs API.
