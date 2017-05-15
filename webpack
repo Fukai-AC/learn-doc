@@ -3,11 +3,12 @@ CLI是在执行webpack命令时后面紧随的参数，用于做不同的配置�
 二.关于nodejs API.
 主要是对wepack.config进行compile.
 三.关于configuration(主要用到的几个配置)
-1.context: 默认的解析目录（绝对路径），为entry的相对路径进行解析铺垫.
-2.entry: 模块构建的入口文件.
+1.context: 默认的解析目录（绝对路径），为entry的相对路径进行解析铺垫,(默认应该为webpack执行的当前路径).
+2.entry: 模块构建的入口文件(其中路径是相对于context设置的路径，而不是config文件的路径).
   (1)string类型: 模块构建的入口文件.
-  (2)array类型: 将数组内的文件合并后，export最后一个作为入口文件.
+  (2)array类型: 将数组内的文件合并打包到main.js里.
   (3)object类型: 每个key对应一个bundle，生成不同的bundle，内部机制同上面两种.
+  (4)方法类型（动态入口）: 方法或者promise返回一个路径动态生成入口文件.
 3.output：生成文件，包括输出文件和输出路径等
   (1)filename: 为生成的文件进行命名.
   (2)path: 生成文件的地址（绝对路径）.
@@ -26,169 +27,9 @@ CLI是在执行webpack命令时后面紧随的参数，用于做不同的配置�
 5.resolve:
   (1)alias: 用别名代替具体地址加快webpack过程.
   (2)root: 一个包括所有module的绝对路径.
-  (3)modulesDirectories: 默认为node_modules，不用写路径，写地址名.
+  (3)modules: 默认为node_modules，绝对路径或者相对路径都行，可以添加路径在node_modules前（前边的先被搜索到）.
   (4)fallback: 在root和modulesDirectories都找不到的modules的地址.
-  (5)extensions: 支持resolve的文件后缀.
+  (5)extensions: 用于配置程序可以自行补全哪些文件后缀.
 6.plugins: 编译时不同的plugins
 7.devtool: 开发模式下的工具(source-map).
 ...
-
-whitePaw项目webpack配置文件如下:
-let webpack = require('webpack');
-let path = require('path');
-let config = require('./config/index.js');
-let autoprefixer = require('autoprefixer');
-let HtmlwebpackPlugin = require('html-webpack-plugin');
-let CleanWebpackPlugin = require('clean-webpack-plugin');
-let ExtractTextPlugin = require('extract-text-webpack-plugin');
-let WebpackMd5Hash = require('webpack-md5-hash');
-let OffLinePlugin = require('offline-plugin');
-
-const ROOT_PATH = path.resolve(__dirname);
-const SRC_PATH = path.resolve(ROOT_PATH, 'src');
-const BUILD_PATH = path.resolve(ROOT_PATH, 'build');
-const NODE_MODULES_PATH = path.resolve(ROOT_PATH, 'node_modules');
-
-const _config = config();
-const is_dev = _config.env === 'development';
-
-const webpackConfig = {
-  entry: {
-    commons: [
-      'react', 'react-dom', 'react-router',
-      'redux', 'react-redux', 'redux-thunk',
-      'react-intl', 'lodash', 'jquery',
-      'classnames',
-    ],
-    index: [
-      './src/index'
-    ]
-  },
-  output: {
-    path: BUILD_PATH,
-    publicPath: '/',
-    filename: is_dev ? 'js/[name].js' : 'js/[name].[chunkhash].js',
-    chunkFilename: is_dev ? 'js/[name].js' : 'js/[name].[chunkhash].js'
-  },
-  resolve: {
-    root: ROOT_PATH,
-    src: SRC_PATH,
-    extensions: ['', '.webpack.js', '.ts', '.tsx', '.js', '.css']
-  },
-  module: {
-    loaders: [
-      {
-        test: /\.tsx?$/,
-        loaders: ['ts-loader'],
-        exclude: /node_modules/
-      },
-      {
-        test: /\.(jpe?g|png|gif|svg)$/,
-        loader: 'url?limit=10000&name=img/[hash].[ext]&publicPath=' + _config.buildtime.both.image_host_url,
-        exclude: /node_modules/,
-      },
-      {
-        test: /\.html$/,
-        loader: 'html-withimg-loader',
-        exclude: /node_modules/
-      },
-      {
-        test: /\.json$/,
-        loader: 'json'
-      }
-    ],
-    preLoaders: [
-    ]
-  },
-  plugins: [
-    new webpack.DefinePlugin({
-      'process.env': {
-        'NODE_ENV': JSON.stringify(_config.env)
-      },
-      config : JSON.stringify(_config)
-    }),
-    new HtmlwebpackPlugin({
-      favicon: './favicon.ico', //favicon路径
-      filename: 'index.html',
-      chunks: ['commons', 'index'],
-      template: './src/index.html',
-      inject: true, //所有的 javascript 资源将被放置到 body 元素的底部
-      hash: false, //为静态资源生成hash值
-      minify: false
-    }),
-    new CleanWebpackPlugin(
-      ['build'],
-      {
-        root: ROOT_PATH, // An absolute path for the root.
-        verbose: true, // Write logs to console.
-        dry: false, // Use boolean 'true' to test/emulate delete. (will not remove files).
-      }
-    ),
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'commons',
-      filename: 'js/[name].bundle.js',
-      minChunks: Infinity
-    }),
-    new webpack.NoErrorsPlugin(),   //跳过编译时出错的代码并记录，使编译后运行时的包不会发生错误。
-    new webpack.optimize.OccurenceOrderPlugin(), //排序输出,
-    new webpack.optimize.DedupePlugin()
-  ],
-  postcss: function () {
-    return [autoprefixer({ browsers: ['last 10 versions', "> 1%"] })]
-  }
-}
-
-// 编译css
-if ( is_dev || _config.buildtime.debug ) {
-  webpackConfig.module.loaders.push({
-    test: /\.css$/,
-    loaders: ['style', 'css', 'postcss']
-  });
-} else {
-  webpackConfig.module.loaders.push({
-    test: /\.css$/,
-    loader: ExtractTextPlugin.extract('style', 'css!postcss')
-  });
-  webpackConfig.plugins.push(
-    new ExtractTextPlugin('css/[name].[contenthash].css'),
-    new WebpackMd5Hash()
-  );
-}
-
-// 开启sourcemap
-if ( is_dev || _config.buildtime.sourcemap ) {
-  webpackConfig.devtool = 'source-map';
-}
-
-// uglify
-if ( _config.buildtime.uglify ) {
-  webpackConfig.plugins.push(new webpack.optimize.UglifyJsPlugin({
-    compress: {
-      warnings: false
-    }
-  }));
-}
-
-//offline
-if (_config.runtime.both.offline) {
-  let offline_config = {
-    publicPath: '/',
-    relativePaths: false,
-    ServiceWorker: {
-      entry: './sw-handler.js',
-      output: 'service_worker.js',
-      events: true,
-      publicPath: '/service_worker.js',
-      navigateFallbackURL: '/index.html',
-      prefetchRequest: {
-        credentials: 'same-origin',
-        cache: 'default'
-      },
-      cacheName: 'whitePaw'
-    },
-    AppCache: false
-  };
-  webpackConfig.plugins.push(new OffLinePlugin(offline_config));
-}
-
-module.exports = webpackConfig
