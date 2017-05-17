@@ -1,0 +1,18 @@
+一.JSONP
+  开始一直以为是一种json数据格式（掩面）。这里先说说同源，同源即如果协议，端口（如果指定了一个）和域名对于两个页面是相同的，则两者同源，IE例外详情请见MDN的同源策略（https://developer.mozilla.org/zh-CN/docs/Web/Security/Same-origin_policy）。由于XmlHttpRequest(ajax)只允许请求同源的资源，而script标签没有这个限制，所以利用这个“漏洞”我们可以达到跨域通讯的目的。
+  具体的做法如下：
+    1.客户端写好要执行的函数function(xx) { do sth.. }
+    2.首先服务器接收一个URL,这个URL会带有参数分别是：要执行的方法名，要传入参数，例如（http://xx.com/xx.js?callback=function&params=xxx）
+    3.服务器通过接收到参数, 执行相应的函数, 客户端的函数就会被执行。
+二.CORS(https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS)
+  服务器通过设置Access-Control-Allow-Origin响应头（response.setHeader( “Access-Control-Allow-Origin”, “*” )），
+preflight(预请求，发生在1.使用GET或POST以外的方法；利用POST发送application/x-www-form-urlencoded, multipart/form-data, or text/plain之外的Content-Type；例如，post body的Content-type为application/xml。2.发送自定义的头信息，如x-pingaruner)请求的响应内容，包括必要的 Access-Control-Allow-Methods, Access-Control-Allow-Headers (保证系统正常运行)，如果需要凭据的话，也会包括 Access-Control-Allow-Credentials 头信息。详细信息可见（https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Server-Side_Access_Control）
+  前端要设置XMLHttpRequest.withCredentials为true.
+三.document.domain
+  页面可能会更改其自己的来源，但有一些限制。脚本可以将 document.domain 的值设置为其当前域或其当前域的超级域。如果将其设置为其当前域的超级域，则较短的域将用于后续原始检查。即通过设置子域的document.domain为超级域，会成功通过其他子域的同源检测。
+四.window.name
+  window.name属性可以用来临时存储数据，可以跨域访问。即在一个窗口(window)的生命周期内,窗口载入的所有的页面都是共享一个window.name的，每个页面对window.name都有读写的权限，window.name是持久存在一个窗口载入过的所有页面中的.
+五.window.postMessage(https://developer.mozilla.org/zh-CN/docs/Web/API/Window/postMessage)
+  window.postMessage() 方法可以安全地实现跨源通信。通常，当且仅当执行它们的页面位于具有相同的协议（通常为https），端口号（443为https的默认值），以及主机(模数 Document.domain 由两个页面设置为相同的值)。 window.postMessage() 方法提供了一种受控机制，以便在正确使用时以安全的方式规避此限制。
+  window.postMessage() 方法被调用时，会在所有页面脚本执行完毕之后（e.g., 在该方法之后设置的事件、之前设置的timeout 事件,etc.）向目标窗口派发一个  MessageEvent 消息。 该MessageEvent消息有四个属性需要注意： message 属性表示该message 的类型； data 属性为 window.postMessage 的第一个参数；origin 属性表示调用window.postMessage() 方法时调用页面的当前状态； source 属性记录调用 window.postMessage() 方法的窗口信息。
+
