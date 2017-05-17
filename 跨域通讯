@@ -1,4 +1,4 @@
-一.JSONP
+一.JSONP 
   开始一直以为是一种json数据格式（掩面）。这里先说说同源，同源即如果协议，端口（如果指定了一个）和域名对于两个页面是相同的，则两者同源，IE例外详情请见MDN的同源策略（https://developer.mozilla.org/zh-CN/docs/Web/Security/Same-origin_policy）。由于XmlHttpRequest(ajax)只允许请求同源的资源，而script标签没有这个限制，所以利用这个“漏洞”我们可以达到跨域通讯的目的。
   具体的做法如下：
     1.客户端写好要执行的函数function(xx) { do sth.. }
