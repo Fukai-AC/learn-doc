@@ -87,7 +87,7 @@ new_prop.get_operator_list(); // [{set_value: 1}, {set_value: 2}]
   let people1 = new People('people1', 'male');
   let people2 = new People('people2', 'female')
   ```
-  new something(...);操作符执行时经过以下几步：  
+  new something(...);操作符执行时经过以下几步：   
   1.创建一个新的对象，继承someting的prototype.  
   2.构造函数something被执行，函数内的this指向这个新对象.  
   3.如果something返回了对象则对象取代这个新对象，若没有则使用这个新对象.  
@@ -105,3 +105,55 @@ new_prop.get_operator_list(); // [{set_value: 1}, {set_value: 2}]
   ```
   由于这样会产生很多只属于某个构造函数的全局函数，产生很多冗余。  
 #### 三.原型模式
+直接添加属性到构造函数的prototype上，每个实例都会包含这些属性，而且共享的是一个属性。会产生一种情况（修改了原型上的属性值，所有实例都会改变）：
+  ```javascript
+  function People() {}
+  People.prototype.name = 'hello';
+  People.prototype.age = 1;
+  People.prototype.show_name = function() {
+    console.log(this.name)
+  }
+  let people1 = new People();
+  let people2 = new People();
+
+  function Person(name, gender) {
+    Person.prototype.name = name;
+    Person.prototype.gendar = gendar;
+    Person.prototype.show_name = function {
+      console.log(this.name);
+    }
+  }
+  let person1 = new Person('小明', 10);
+  let person2 = new Person('小红', 11);
+  person1.name // 小红
+  person2.name // 小红
+  person1.show_name() //小红
+  ```
+  1.原型对象  
+  当创建一个函数的时候，会为该函数创建一个constructor的属性，这个属性指向了该函数的原型对象。当调用该函数创建新的实例的时候，则该新实例的一个属性[[Prototype]]作为一个指针指向了该函数的原型对象，所以说，实例指向的是构造函数的原型对象而不是该构造函数。所以新的实例是不含prototype属性的，而且无法获取到[[Prototype]]，在Es5中增加了Object.getPrototypeof()方法可以返回[[Prototype]]的值即该对象的原型。  
+  当读取对象的属性时会先查找该对象是否有该属性，找到的话就返回该属性，没有的话会再去找该对象的原型对象中的属性。   
+  当修改实例中的属性时将会给该实例创建一个新的属性，而不会修改原型对象的属性，可通过delete删除该实例上的属性。   
+  使用hasOwnProperty()函数可判断属性是否是当前对象的属性，true表示是实例属性，false表示是原型属性。
+
+  ```javascript
+  function People() {}
+  People.prototype.name = 'hello';
+  People.prototype.age = 1;
+  People.prototype.show_name = function() {
+    console.log(this.name)
+  }
+  let people1 = new People();
+  let people2 = new People();
+  people1.name = 'nihao';
+  people1.name; // nihao
+  people2.name; // hello
+  people1.hasOwnProperty('name'); // true
+  people2.hasOwnProperty('name'); // false
+  delete people1.name;
+  people1.name // hello
+  people1.hasOwnProperty('name'); // false
+  ```
+  2.in操作符  
+    单独使用in操作符时，只要属性存在该对象，不论是实例属性还是原型属性都会返回true。!(object.hasOwnProperty('name') && 'name' in object)该表达式可判断属性是否是原型属性。  
+    for-in循环时会返回能够通过对象访问的可枚举的属性，不论该属性存在于对象属性还是实例属性中。  
+    Object.keys()会返回该实例的可枚举的实例属性而不返回原型属性。
