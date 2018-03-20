@@ -1,0 +1,86 @@
+<html>
+  <head>
+    <title>demo1</title>
+    <script>
+      var canvas_el = document.getElementById('canvas_1');
+      var gl;
+      var triangle_buffer;
+      var square_buffer;
+      var pMatrix;
+      var mvMatrix;
+      function webgl_start() {
+        init_gl();
+        init_shader();
+        init_buffers();
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.enable(gl.DEPTH_TEST);
+        draw_scene();
+      }
+      function init_gl() {
+        try {
+          gl = canvas_el.getContext('webgl');
+          gl.viewportWidth = canvas_el.width;
+          gl.viewportHeight = canvas_el.height;
+        } catch(e) {
+          console.log('can not get webgl');
+        }
+      }
+      function init_shader() {
+        var fragmentShader = getShader(gl, 'shader-fs');
+        var vertextShader = getShader(gl, 'shader-vs');
+      }
+
+      function getShader(gl, id) {
+        var shaderScript = document.getElementById(id);
+        if (!shaderScript) {
+          return;
+        }
+        var str = '';
+        var cont = shaderScript.firstChild;
+        while (cont) {
+          if (cont.nodeType === 3) {
+            str += cont.textContent;
+          }
+        }
+      }
+      function init_buffers() {
+        triangle_buffer = gl.createBuffer();
+        var triangle_vertex = [
+          0.0, 1.0, 0.0,
+          -1.0, -1.0, 0.0,
+          1.0, -1.0, 0.0,
+        ];
+        gl.bindBuffer(gl.ARRAY_BUFFER, triangle_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangle_vertex), gl.STATIC_DRAW);
+        triangle_buffer.itemSize = 3;
+        triangle_buffer.numItems = 3;
+
+        square_buffer = gl.createBuffer();
+        var suqare_vertex = [
+          -1.0, 1.0, 0.0,
+          1.0, 1.0, 0.0,
+          -1.0, -1.0, 0.0,
+          1.0, -1.0, 0.0,
+        ];
+        gl.bindBuffer(gl.ARRAY_BUFFER, square_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(square_buffer), gl.STATIC_DRAW);
+        square_buffer.itemSize = 3;
+        square_buffer.numItems = 4;
+      }
+      function draw_scene() {
+        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        pMatrix = okMat4Proj(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100);
+        mvMatrix = okMat4Trans(-1.5, 0.0, -7.0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, triangle_buffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, triangle_buffer.itemSize, gl.FLOAT, false, 0, 0);
+        setMatrixUniforms();
+        gl.drawArrays(gl.TRI)
+      }
+    </script>
+  </head>
+  <body onload="webgl_start()">
+    <canvas id="canvas_1"></canvas>
+  </body>
+</html>

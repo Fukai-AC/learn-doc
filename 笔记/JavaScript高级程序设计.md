@@ -156,4 +156,40 @@ new_prop.get_operator_list(); // [{set_value: 1}, {set_value: 2}]
   2.in操作符  
     单独使用in操作符时，只要属性存在该对象，不论是实例属性还是原型属性都会返回true。!(object.hasOwnProperty('name') && 'name' in object)该表达式可判断属性是否是原型属性。  
     for-in循环时会返回能够通过对象访问的可枚举的属性，不论该属性存在于对象属性还是实例属性中。  
-    Object.keys()会返回该实例的可枚举的实例属性而不返回原型属性。
+    Object.keys()会返回该实例的可枚举的实例属性而不返回原型属性。  
+    Object.getOwnPropertyNames()会返回多有的实例属性，包含可枚举和不可枚举的实例属性.  
+    书上说Object.keys()和Object.getOwnPropertyNames()都可以用来替代for-in，但是他们两个都不能查找原型属性，很是迷惑。
+  3.原型语法  
+    直接设置原型如:  
+
+  ```javascript
+  function Person() {}
+  Person.prototype = {
+    name: 'hello',
+    age: 1,
+    show_name: function() {
+      console.log(this.name);
+    }
+  };
+  let person1 = new Person();
+  ```
+  这样的Person, constructor属性将会指向Object而不是Person
+  4.原型的动态性
+  若在原型上修改任何的属性，都会反映在实例上，但是如果对原型重新赋值的话则不会影响实例的属性。因为实例指向的是原型而不是构造函数。如：
+  ```javascript
+  function Person() {}
+  Person.prototype = {
+    name: 'hello',
+    age: 1,
+    show_name: function() {
+      console.log(this.name);
+    }
+  };
+  let person1 = new Person();
+  Person.prototype.name = 'hhhh';
+  person1.name; // hhhh
+  Person.prototype = {
+    sex: 1
+  }
+  person1.sex; // undefined
+  ```
