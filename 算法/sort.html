@@ -1,0 +1,66 @@
+<html>
+<body>
+  <div id="output">
+  </div>
+</body>
+<script>
+  // low bubble
+  function bubble_low(data) {
+    if (typeof data === 'array' && data.length <= 0) {
+      return null;
+    }
+    let data_cp = [...data];
+    let i, j;
+    let n = data.length;
+    var tmp;
+    for (i = 0; i < n; i++) {
+      for (j = 0; j < n; j++) {
+        if (data[j] < data[j+1]) {
+          tmp = data[j];
+          data[j] = data[j+1];
+          data[j+1] = tmp;
+        }
+      }
+    }
+    let end = new Date().getTime();
+    return data;
+  }
+  //normal bubble
+  function bubble_normal(data) {
+    if (typeof data === 'array' && data.length <= 0) {
+      return null;
+    }
+    let data_cp = [...data];
+    let i, j;
+    let n = data.length;
+    var tmp;
+    for (i = n - 1; i >= 0; i--) {
+      for (j = 0; j <= i; j++) {
+        if (data[j] < data[j+1]) {
+          tmp = data[j];
+          data[j] = data[j+1];
+          data[j+1] = tmp;
+        }
+      }
+    }
+    return data;
+  }
+
+
+  function test(func, param) {
+    let begin = new Date().getTime();
+    func(param);
+    let end = new Date().getTime();
+    return (end - begin) + 'ms';
+  }
+  function createResult(content) {
+    var el_p = document.createElement('p');
+    el_p.innerHTML = content;
+    document.getElementById('output').appendChild(el_p);
+  }
+  
+  let a = [5,7,4,5,4,2,2,4,6,7,8,9,2,1];
+  createResult('low_bubble: ' + bubble_low(a) + ' ' + test(bubble_low, a));
+  createResult('normal_bubble: ' + bubble_normal(a) + ' ' + test(bubble_normal, a));
+</script>
+</html>
